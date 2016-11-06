@@ -86,11 +86,11 @@
 		slot_ptr = (char *)page->data + j * slot_size;
 		strncpy(slot_ptr, "1", 1);
 
-		printf("slot flag is: %s \n", slot_ptr);
+		// printf("slot flag is: %s \n", slot_ptr);
 
 		memcpy(slot_ptr + 1, row, slot_size - 1);
 
-		printf("slot content is: %s\n\n", slot_ptr);
+		// printf("slot content is: %s\n\n", slot_ptr);
 
 		bzero(line, MAXLINE);
 	    bzero(row, MAXLINE);
