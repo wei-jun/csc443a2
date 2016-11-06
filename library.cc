@@ -24,26 +24,42 @@ typedef struct {
 /**
  * Compute the number of bytes required to serialize record
  */
-int fixed_len_sizeof(Record *record)
-{
+int fixed_len_sizeof(Record *record) {
+	//int i = sizeof(record);
+	//return i;
 	return 0;
 }
 
 /**
  * Serialize the record to a byte array to be stored in buf.
  */
-void fixed_len_write(Record *record, void *buf)
-{
-	return;
+void fixed_len_write(Record *record, void *buf) {
+	//std::vector<V> Record = {'aaaaa aaaaa', 'bbbbb bbbbb', ... 'zzzzz zzzzz'};
+	//*buf = 'aaaaaaaaaabbbbbbbbbb ... zzzzzzzzzz'
+	/*
+	char *buf = (char*)buf;
+	std::vector<V>::iterator it;
+	for(it = Record.begin(); it != Record.end(); ++it) {
+ 	    *buf = *it;
+	    *buf += 10;
+	}
+	*/
+	return;	
 }
 
 /**
  * Deserializes `size` bytes from the buffer, `buf`, and
  * stores the record in `record`.
+ * Input: fixed_len_read('aaaaabbbbbccccc', 1000, {});
+ * Output: {'aaaaa', 'bbbbb', 'ccccc'}
  */
-void fixed_len_read(void *buf, int size, Record *record)
-{
-	return;
+void fixed_len_read(void *buf, int size, Record *record) {
+	/*
+	for (int i=0; i < size; i+10){
+		char *temp = buf[i, i+9];
+		Record.push_back(temp);
+	}
+	*/
 }
 
 
@@ -56,8 +72,7 @@ void init_fixed_len_page(Page *page, int page_size, int slot_size)
 	page->page_size = page_size;
 	page->slot_size = slot_size;
 	page->data = (void *)malloc((page_size / slot_size) * slot_size);
-	bzero(page->data, page_size);
-	return;
+	bzero(page->data, (page_size / slot_size) * slot_size);
 }
  
 /**
@@ -131,4 +146,5 @@ void read_fixed_len_page(Page *page, int slot, Record *r)
 	fixed_len_read(slot_ptr + 1, page->slot_size - 1, r);	
 	return;
 }
+
 

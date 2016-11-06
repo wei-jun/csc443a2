@@ -41,13 +41,12 @@
 	bzero(row, MAXLINE);
 	Record *record;
 	char *slot_ptr;
-	Page *page = (Page *)malloc(sizeof(Page));
+	Page *page;
 	int slot_size = 1 + ATTRS_SIZE * ATTR_LEN;
 	int page_capacity = page_size / slot_size;
 	page_size = (page_size / slot_size) * slot_size;
-	// init_fixed_len_page(page, page_size, slot_size); 
 	init_fixed_len_page(page, page_size, slot_size);
-
+	
 	int rec_count = 0;
 	int page_count = 0;	
 	struct timeb t_start, t_end;

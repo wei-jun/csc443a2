@@ -1,6 +1,6 @@
 #include <vector>
 
-typedef const char* V;
+typedef char* V;
 typedef std::vector<V> Record;
 
 #define ATTRS_SIZE 100 // number of attributes
@@ -12,7 +12,6 @@ typedef struct {
     int page_size;
     int slot_size;
 } Page;
-
 
 
 /**
@@ -30,7 +29,6 @@ void fixed_len_write(Record *record, void *buf);
  * stores the record in `record`.
  */
 void fixed_len_read(void *buf, int size, Record *record);
-
 
 /**
  * Initializes a page using the given slot size
