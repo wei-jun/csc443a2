@@ -33,7 +33,12 @@
 	int slot_size = 1 + ATTRS_SIZE * ATTR_LEN;
 	int page_capacity = page_size / slot_size;
 	page_size = (page_size / slot_size) * slot_size;
-	init_fixed_len_page(page, page_size, slot_size); 
+	//init_fixed_len_page(page, page_size, slot_size); 
+	page = (Page *)malloc(sizeof(Page));
+	page->page_size = page_size;
+	page->slot_size = slot_size;
+	page->data = (void *)malloc((page_size / slot_size) * slot_size);
+	bzero(page->data, (page_size / slot_size) * slot_size);
 	
 	int rec_count = 0;
 	int page_count = 0;	
@@ -67,7 +72,7 @@
 				// print the last attribute value
 				strncpy(attr_value, slot_ptr + 1 + j * ATTR_LEN, ATTR_LEN);
 				attr_value[ATTR_LEN + 1] = '\0';
-				printf("%s\n", attr_value);
+				printf("%s\n\n", attr_value);
 				bzero(attr_value, ATTR_LEN + 1);
 			}			
 		}
@@ -82,8 +87,8 @@
 	fclose(page_fp);
 
 	printf("NUMBER OF RECORDS: %d\n", rec_count);
-	printf("NUMBER OF PAGES: %d", page_count);
-	printf("TIME: %d", t_diff);
+	printf("NUMBER OF PAGES: %d\n", page_count);
+	printf("TIME: %d\n", t_diff);
 
  	return 0;
  }
