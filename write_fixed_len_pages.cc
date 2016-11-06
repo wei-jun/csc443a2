@@ -45,7 +45,12 @@
 	int slot_size = 1 + ATTRS_SIZE * ATTR_LEN;
 	int page_capacity = page_size / slot_size;
 	page_size = (page_size / slot_size) * slot_size;
-	init_fixed_len_page(page, page_size, slot_size);
+	// init_fixed_len_page(page, page_size, slot_size);
+	page = (Page *)malloc(sizeof(Page));
+	page->page_size = page_size;
+	page->slot_size = slot_size;
+	page->data = (void *)malloc((page_size / slot_size) * slot_size);
+	bzero(page->data, (page_size / slot_size) * slot_size);
 	
 	int rec_count = 0;
 	int page_count = 0;	
@@ -59,6 +64,7 @@
 	int j = 0;
 	while(fgets(line, MAXLINE, csv_fp) != NULL) {
 		char *curr_attr = strtok(line, ",");
+		//printf("first value is: %s\n", curr_attr);
 		int i = 0;
 		// remove common "," from the line and save into row
 		while (curr_attr) {
@@ -66,38 +72,44 @@
 			curr_attr = strtok(NULL, ",");
 			i++;			
 		}
+		//printf("row read is: %s\n\n", row);
 		
+		/*
 		// use the row to construct a record
 		fixed_len_read(row, ATTRS_SIZE * ATTR_LEN, record);
 
 		// write the record into a page
 		write_fixed_len_page(page, j, record);
-
-		/*
+		*/
+		
 		// write the row into a page
 		slot_ptr = (char *)page->data + j * slot_size;
 		strncpy(slot_ptr, "1", 1);
+
+		printf("slot flag is: %s \n", slot_ptr);
+
 		memcpy(slot_ptr + 1, row, slot_size - 1);
-		*/
+
+		printf("slot content is: %s\n\n", slot_ptr);
 
 		bzero(line, MAXLINE);
 	    bzero(row, MAXLINE);
 		rec_count++;
 		j++;
-		// if the page is full, write to page file
+		// if the page is full, write to page file		
 		if (j == page_capacity) {
 			fwrite(page->data, page_size, 1, page_fp);
 			fflush(page_fp);
 			bzero(page->data, page_size);
 			page_count++;
 			j = 0;
-		}
-		// write the last not-full page if applicable
-		if (j != 0) {
-			fwrite(page->data, page_size, 1, page_fp);
-			page_count++;
 		}		
 	}
+	// write the last not-full page if applicable
+	if (j != 0) {
+		fwrite(page->data, page_size, 1, page_fp);
+		page_count++;
+	}		
 
 	ftime(&t_end);
 	end_in_ms = t_end.time * 1000 + t_end.millitm;
@@ -109,8 +121,8 @@
 	fclose(page_fp);
 
 	printf("NUMBER OF RECORDS: %d\n", rec_count);
-	printf("NUMBER OF PAGES: %d", page_count);
-	printf("TIME: %d", t_diff);
+	printf("NUMBER OF PAGES: %d\n", page_count);
+	printf("TIME: %d ms\n", t_diff);
 
  	return 0;
  }
