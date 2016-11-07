@@ -18,6 +18,18 @@ typedef struct {
     int page_size;
     int slot_size;
 } Page;
+
+typedef struct {
+    FILE *file_ptr;
+    int page_size;
+} Heapfile
+
+typedef int PageID;
+ 
+typedef struct {
+    int page_id;
+    int slot;
+} RecordID;
 */
 
 
@@ -146,5 +158,50 @@ void read_fixed_len_page(Page *page, int slot, Record *r)
 	fixed_len_read(slot_ptr + 1, page->slot_size - 1, r);	
 	return;
 }
+
+/**
+ * Initalize a heapfile to use the file and page size given.
+ */
+void init_heapfile(Heapfile *heapfile, int page_size, FILE *file)
+{
+	return;
+}
+
+/**
+ * Allocate another page in the heapfile.  This grows the file by a page.
+ */
+PageID alloc_page(Heapfile *heapfile)
+{
+	int page_id;
+	return page_id;
+}
+
+/**
+ * Read a page into memory
+ */
+void read_page(Heapfile *heapfile, PageID pid, Page *page)
+{
+	return;
+}
+
+/**
+ * Write a page from memory to disk
+ */
+void write_page(Page *page, Heapfile *heapfile, PageID pid)
+{
+	return;
+}
+
+class RecordIterator {
+    public:
+    RecordIterator(Heapfile *heapfile);
+    Record next();
+    bool hasNext();
+};
+
+
+
+
+
 
 
