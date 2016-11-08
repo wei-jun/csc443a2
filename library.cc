@@ -9,7 +9,7 @@
 typedef const char* V;
 typedef std::vector<V> Record;
 
-#define ATTRS_SIZE 100 // number of attributes
+#define NUM_ATTRS 100 // number of attributes
 #define ATTR_LEN  10 //  lenght of each attribute
 #define MAXLINE   1200
 
