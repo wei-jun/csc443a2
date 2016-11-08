@@ -79,12 +79,10 @@ void fixed_len_read(void *buf, int size, Record *record) {
  * Initializes a page using the given slot size
  */
 void init_fixed_len_page(Page *page, int page_size, int slot_size) 
-{
-	page = (Page *)malloc(sizeof(Page));
+{	
 	page->page_size = page_size;
 	page->slot_size = slot_size;
-	page->data = (void *)malloc((page_size / slot_size) * slot_size);
-	bzero(page->data, (page_size / slot_size) * slot_size);
+	bzero(page->data, page_size);
 }
  
 /**
@@ -192,12 +190,14 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid)
 	return;
 }
 
+/*
 class RecordIterator {
     public:
     RecordIterator(Heapfile *heapfile);
     Record next();
     bool hasNext();
 };
+*/
 
 
 

@@ -33,12 +33,9 @@
 	int slot_size = 1 + ATTRS_SIZE * ATTR_LEN;
 	int page_capacity = page_size / slot_size;
 	page_size = (page_size / slot_size) * slot_size;
-	//init_fixed_len_page(page, page_size, slot_size); 
 	page = (Page *)malloc(sizeof(Page));
-	page->page_size = page_size;
-	page->slot_size = slot_size;
 	page->data = (void *)malloc((page_size / slot_size) * slot_size);
-	bzero(page->data, (page_size / slot_size) * slot_size);
+	init_fixed_len_page(page, page_size, slot_size);
 	
 	int rec_count = 0;
 	int page_count = 0;	
