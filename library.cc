@@ -12,6 +12,8 @@ typedef std::vector<V> Record;
 #define ATTRS_SIZE 100 // number of attributes
 #define ATTR_LEN  10 //  lenght of each attribute
 #define MAXLINE   1200
+#define OFFSET_LEN     8 // bytes of page_offset
+#define FREESPACE_LEN  4 // bytes of freespace
 
 typedef struct {
     void *data;
@@ -30,6 +32,24 @@ typedef struct {
     int page_id;
     int slot;
 } RecordID;
+
+// Idea: Heapfile file_ptr points to the first page of the heapfile,
+the first page is always a directory page; directory page has the same
+page size as regular data(records) page, but has smaller slot size(12 bytes) 
+and bigger page capacity(number of slots); each slot has two attributes, the
+first one (8 bytes) is page_offset, the second one (4 bytes) is freespace(number
+of slots); 
+The first slot of each directory page stores offset for the next directory page, 
+(0 indicates no next directory page), and the freespace for this directory page.
+From second slot and on, each slot stores a data page's offset and freespace.
+
+typedef struct {
+	void *dir;
+	int page_size;
+	int slot_size;
+	void next_dir_page_offset; // offset to the next directory page
+	int freespace;  // free space (number of free dir slots) in this dir page
+} Dir_page;
 */
 
 
@@ -162,6 +182,8 @@ void read_fixed_len_page(Page *page, int slot, Record *r)
  */
 void init_heapfile(Heapfile *heapfile, int page_size, FILE *file)
 {
+	heapfile->file_ptr = file;
+	heapfile->page_size = page_size
 	return;
 }
 
@@ -170,7 +192,17 @@ void init_heapfile(Heapfile *heapfile, int page_size, FILE *file)
  */
 PageID alloc_page(Heapfile *heapfile)
 {
-	int page_id;
+	int page_id = 0;
+	int dir_page_capacity = heapfile->page_size / (OFFSET_LEN + FREESPACE_LEN);
+	char * new_page = (void *)malloc(heapfile->page_size);
+	char *dir_ptr = (char *)heapfile->file_ptr;
+	int freeslots = (int)(dir_ptr + OFFSET_LEN);
+	while (freeslots == 0) {
+		dir_ptr = dir_ptr + (unsigned long)(dir_ptr);
+		page_id += dir_page_capacity;
+	}
+
+
 	return page_id;
 }
 

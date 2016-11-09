@@ -3,9 +3,11 @@
 typedef char* V;
 typedef std::vector<V> Record;
 
-#define ATTRS_SIZE 100 // number of attributes
-#define ATTR_LEN  10 //  lenght of each attribute
-#define MAXLINE   1200
+#define ATTRS_SIZE     100 // number of attributes
+#define ATTR_LEN       10 //  lenght of each attribute
+#define MAXLINE        1200
+#define OFFSET_LEN     8 // bytes of page_offset
+#define FREESPACE_LEN  4 // bytes of freespace
 
 typedef struct {
     void *data;
@@ -25,6 +27,25 @@ typedef struct {
     int slot;
 } RecordID;
 
+typedef struct {
+    void *dir;
+    int page_size;
+    int slot_size;
+    unsigned long next_dir_page_offset; // offset to the next directory page
+    int freespace;  // free space (number of free dir slots) in this dir page
+} Dir_page;
+
+/*
+Idea: Heapfile file_ptr points to the first page of the heapfile,
+the first page is always a directory page; directory page has the same
+page size as regular data(records) page, but has smaller slot size(12 bytes) 
+and bigger page capacity(number of slots); each slot has two attributes, the
+first one (8 bytes) is page_offset, the second one (4 bytes) is freespace(number
+of slots); 
+The first slot of each directory page stores offset for the next directory page, 
+(0 indicates no next directory page), and the freespace for this directory page.
+From second slot and on, each slot stores a data page's offset and freespace.
+*/
 
 /**
  * Compute the number of bytes required to serialize record
