@@ -42,7 +42,7 @@
 	Record *record;
 	char *slot_ptr;
 	Page *page;
-	int slot_size = 1 + ATTRS_SIZE * ATTR_LEN;
+	int slot_size = 1 + NUM_ATTRS * ATTR_LEN;
 	int page_capacity = page_size / slot_size;
 	page_size = (page_size / slot_size) * slot_size;	
 	page = (Page *)malloc(sizeof(Page));
@@ -61,7 +61,6 @@
 	int j = 0;
 	while(fgets(line, MAXLINE, csv_fp) != NULL) {
 		char *curr_attr = strtok(line, ",");
-		//printf("first value is: %s\n", curr_attr);
 		int i = 0;
 		// remove common "," from the line and save into row
 		while (curr_attr) {
@@ -73,7 +72,7 @@
 		
 		/*
 		// use the row to construct a record
-		fixed_len_read(row, ATTRS_SIZE * ATTR_LEN, record);
+		fixed_len_read(row, NUM_ATTRS * ATTR_LEN, record);
 
 		// write the record into a page
 		write_fixed_len_page(page, j, record);
@@ -82,11 +81,9 @@
 		// write the row into a page
 		slot_ptr = (char *)page->data + j * slot_size;
 		strncpy(slot_ptr, "1", 1);
-
-		// printf("slot flag is: %s \n", slot_ptr);
-
 		memcpy(slot_ptr + 1, row, slot_size - 1);
 
+		// printf("slot flag is: %s \n", slot_ptr);
 		// printf("slot content is: %s\n\n", slot_ptr);
 
 		bzero(line, MAXLINE);
@@ -95,7 +92,7 @@
 		j++;
 		// if the page is full, write to page file		
 		if (j == page_capacity) {
-			fwrite(page->data, page_size, 1, page_fp);
+			fwrite(page->data, 1, page_size, page_fp);
 			fflush(page_fp);
 			bzero(page->data, page_size);
 			page_count++;
@@ -104,7 +101,7 @@
 	}
 	// write the last not-full page if applicable
 	if (j != 0) {
-		fwrite(page->data, page_size, 1, page_fp);
+		fwrite(page->data, 1, page_size, page_fp);
 		page_count++;
 	}		
 

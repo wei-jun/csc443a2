@@ -3,9 +3,9 @@
 typedef char* V;
 typedef std::vector<V> Record;
 
-#define ATTRS_SIZE     100 // number of attributes
-#define ATTR_LEN       10 //  lenght of each attribute
-#define MAXLINE        1200
+#define NUM_ATTRS 100 // number of attributes
+#define ATTR_LEN  10 //  lenght of each attribute
+#define MAXLINE   1200
 #define OFFSET_LEN     8 // bytes of page_offset
 #define FREESPACE_LEN  4 // bytes of freespace
 

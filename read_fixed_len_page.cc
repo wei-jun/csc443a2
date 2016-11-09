@@ -30,7 +30,7 @@
 	}
 
 	Page *page;
-	int slot_size = 1 + ATTRS_SIZE * ATTR_LEN;
+	int slot_size = 1 + NUM_ATTRS * ATTR_LEN;
 	int page_capacity = page_size / slot_size;
 	page_size = (page_size / slot_size) * slot_size;
 	page = (Page *)malloc(sizeof(Page));
@@ -60,7 +60,7 @@
 			if (strncmp(slot_ptr, "1", 1) == 0) {
 				rec_count++;
 				// print the record as csv format
-				for (j=0; j<(ATTRS_SIZE - 1); j++) {
+				for (j=0; j<(NUM_ATTRS - 1); j++) {
 					strncpy(attr_value, slot_ptr + 1 + j * ATTR_LEN, ATTR_LEN);
 					attr_value[ATTR_LEN + 1] = '\0';
 					printf("%s,", attr_value);
