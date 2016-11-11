@@ -20,17 +20,17 @@
  {
     // input sanity check
  	if (argc != 4) {
-		printf("usage: write_fixed_len_pages <csv_file> <page_file> <page_size>\n");
+		fprintf(stderr, "Usage: %s <csv_file> <page_file> <page_size>\n", argv[0]);
 		exit(-1);
 	}
 	FILE *csv_fp;
 	if ((csv_fp = fopen(argv[1], "r")) == NULL) {
-		printf("cannot read file %s\n", argv[1]);
+		fprintf(stderr, "cannot read file %s\n", argv[1]);
 		exit(-1);
 	}	
 	int page_size = atoi(argv[3]);
 	if (page_size <= 0) {
-		printf("page_size should be positive.\n");
+		fprintf(stderr, "page_size should be positive.\n");
 		exit(-1);
 	}
 

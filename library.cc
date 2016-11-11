@@ -291,11 +291,10 @@ PageID alloc_page(Heapfile *heapfile)
  */
 void read_page(Heapfile *heapfile, PageID pid, Page *page)
 {
-	int fd = fileno(heapfile->file_ptr);
-	if (readblock(fd, heapfile->page_size, pid, 1, page->data) == -1) {
-        fprintf(stderr, "read file error\n");
-        exit(1);
-	}
+	fseek(heapfile->file_ptr, pid * heapfile->page_size, SEEK_SET);
+	fread(page->data, 1, heapfile->page_size, heapfile->file_ptr);
+	fseek(heapfile->file_ptr, 0, SEEK_SET);
+	
 }
 
 /**
@@ -303,7 +302,10 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page)
  */
 void write_page(Page *page, Heapfile *heapfile, PageID pid)
 {
-	return;
+	fseek(heapfile->file_ptr, pid * heapfile->page_size, SEEK_SET);
+	fwrite(page->data, 1, heapfile->page_size, heapfile->file_ptr);
+	fseek(heapfile->file_ptr, 0, SEEK_SET);
+
 }
 
 /*

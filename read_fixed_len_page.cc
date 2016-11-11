@@ -17,18 +17,16 @@
  	if (argc != 3) {
  		fprintf(stderr, "Usage: %s <page_file> <page_size>\n", argv[0]);
         exit(1);
-		//printf("usage: read_fixed_len_page <page_file> <page_size>\n");
-		//exit(-1);
 	}
 	FILE *page_fp;
 	if ((page_fp = fopen(argv[1], "r")) == NULL) {
-		printf("cannot read file %s\n", argv[1]);
-		exit(-1);
+		fprintf(stderr, "cannot read file %s\n", argv[1]);
+		exit(1);
 	}	
 	int page_size = atoi(argv[2]);
 	if (page_size <= 0) {
-		printf("page_size should be positive.\n");
-		exit(-1);
+		fprintf(stderr, "page_size should be positive.\n");
+		exit(1);
 	}
 
 	Page *page;
