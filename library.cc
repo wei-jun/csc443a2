@@ -49,14 +49,6 @@ The first slot of each directory page stores offset for the next directory page,
 From second slot and on, each slot stores a data page's offset and freespace.
 
 typedef struct {
-	void *dir;
-	int page_size;
-	int slot_size;
-	void next_dir_page_offset; // offset to the next directory page
-	int freespace;  // free space (number of free dir slots) in this dir page
-} Dir_page;
-
-typedef struct {
 	unsigned long offset;
 	int freespace;
 } Page_entry;

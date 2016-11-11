@@ -33,14 +33,6 @@ typedef struct {
 } RecordID;
 
 typedef struct {
-    void *dir;
-    int page_size;
-    int slot_size;
-    unsigned long next_dir_page_offset; // offset to the next directory page
-    int freespace;  // free space (number of free dir slots) in this dir page
-} Dir_page;
-
-typedef struct {
 	unsigned long offset;
 	int freespace;  // number of free slots
 } Page_entry;
