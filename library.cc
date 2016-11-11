@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "library.h"
 
@@ -22,6 +23,11 @@ typedef struct {
 } Page;
 
 typedef struct {
+	char flag;  // '0' - free; '1' - occupied
+	void record[NUM_ATTRS * ATTR_LEN];
+} Slot;
+
+typedef struct {
     FILE *file_ptr;
     int page_size;
 } Heapfile
@@ -33,12 +39,11 @@ typedef struct {
     int slot;
 } RecordID;
 
-// Idea: Heapfile file_ptr points to the first page of the heapfile,
-the first page is always a directory page; directory page has the same
-page size as regular data(records) page, but has smaller slot size(12 bytes) 
-and bigger page capacity(number of slots); each slot has two attributes, the
-first one (8 bytes) is page_offset, the second one (4 bytes) is freespace(number
-of slots); 
+Idea: Heapfile file_ptr points to the first page of the heapfile, the first page 
+is always a directory page; directory page has the same page size as regular 
+data(records) page, but smaller slot size(12 bytes) and bigger page capacity(number 
+of slots); each slot stores one page_entry(page_offset, freespace); page_offset is
+8 bytes, freespace(number of slots) is 4 bytes; 
 The first slot of each directory page stores offset for the next directory page, 
 (0 indicates no next directory page), and the freespace for this directory page.
 From second slot and on, each slot stores a data page's offset and freespace.
@@ -50,6 +55,12 @@ typedef struct {
 	void next_dir_page_offset; // offset to the next directory page
 	int freespace;  // free space (number of free dir slots) in this dir page
 } Dir_page;
+
+typedef struct {
+	unsigned long offset;
+	int freespace;
+} Page_entry;
+
 */
 
 
@@ -120,12 +131,21 @@ int fixed_len_page_freeslots(Page *page)
 {
 	int i;
 	int count = 0;
+	/*
 	char *slot_ptr;
 	char flag;  // 1=occupied, 0=free space
 	for (i=0; i<(page->page_size)/(page->slot_size); i++) {
 		slot_ptr = (char *)page->data + i * page->slot_size;
 		strncpy(&flag, slot_ptr, 1);
 		if ( strcmp(&flag, "0") == 0) {
+			count++;
+		}
+	}
+	*/
+	Slot *slot_ptr;
+	for (i=0; i<(page->page_size/page->slot_size); i++) {
+		slot_ptr = (Slot *)((char *)page->data + i * page->slot_size);
+		if (slot_ptr->flag == '0') {
 			count++;
 		}
 	}
@@ -143,6 +163,8 @@ int add_fixed_len_page(Page *page, Record *r)
 	if (fixed_len_page_freeslots(page) == 0) {
 		return -1;
 	}
+
+	/*
 	int i;
 	char *slot_ptr;
 	for (i=0; i<(page->page_size)/(page->slot_size); i++) {
@@ -153,6 +175,18 @@ int add_fixed_len_page(Page *page, Record *r)
 			return i;
 		}
 	}
+	*/
+    int i;
+	Slot *slot_ptr;
+	for (i=0; i<(page->page_size)/(page->slot_size); i++) {
+		slot_ptr = (Slot *)((char *)page->data + i * page->slot_size);
+		if ( slot_ptr->flag == '0') {
+			slot_ptr->flag = '1';
+			fixed_len_write(r, slot_ptr->record);
+			return i;
+		}
+	}
+
 	return -1;
 }
  
@@ -161,9 +195,19 @@ int add_fixed_len_page(Page *page, Record *r)
  */
 void write_fixed_len_page(Page *page, int slot, Record *r)
 {
+	if (slot < 0 || slot >= page->page_size / page->slot_size) {
+		fprintf(stderr, "slot number out of range!\n");
+		exit(-1);
+	}
+	/*
 	char *slot_ptr = (char *)page->data + slot * page->slot_size;
 	strncpy(slot_ptr, "1", 1);
 	fixed_len_write(r, slot_ptr + 1);
+	*/
+	Slot *slot_ptr = (Slot *)((char *)page->data + slot * page->slot_size);
+	slot_ptr->flag = '1';
+	fixed_len_write(r, slot_ptr->record);
+
 	return;
 }
  
@@ -172,8 +216,13 @@ void write_fixed_len_page(Page *page, int slot, Record *r)
  */
 void read_fixed_len_page(Page *page, int slot, Record *r)
 {
+	if (slot < 0 || slot >= page->page_size / page->slot_size) {
+		fprintf(stderr, "slot number out of range!\n");
+		exit(1);
+	}
 	char *slot_ptr = (char *)page->data + slot * page->slot_size;
-	fixed_len_read(slot_ptr + 1, page->slot_size - 1, r);	
+	fixed_len_read(slot_ptr + 1, page->slot_size - 1, r);
+
 	return;
 }
 
@@ -183,7 +232,7 @@ void read_fixed_len_page(Page *page, int slot, Record *r)
 void init_heapfile(Heapfile *heapfile, int page_size, FILE *file)
 {
 	heapfile->file_ptr = file;
-	heapfile->page_size = page_size
+	heapfile->page_size = page_size;
 	return;
 }
 
@@ -194,14 +243,45 @@ PageID alloc_page(Heapfile *heapfile)
 {
 	int page_id = 0;
 	int dir_page_capacity = heapfile->page_size / (OFFSET_LEN + FREESPACE_LEN);
-	char * new_page = (void *)malloc(heapfile->page_size);
-	char *dir_ptr = (char *)heapfile->file_ptr;
-	int freeslots = (int)(dir_ptr + OFFSET_LEN);
-	while (freeslots == 0) {
-		dir_ptr = dir_ptr + (unsigned long)(dir_ptr);
+	char * dir_ptr;
+	Page_entry *dir_page_entry, *data_page_entry;
+
+	// find a directory page for this new page entry
+	dir_ptr = (char *)heapfile->file_ptr;
+	dir_page_entry = (Page_entry *)dir_ptr;
+	while (dir_page_entry->freespace < 1 && dir_page_entry->offset != 0) {
+		dir_ptr = (char *)heapfile->file_ptr + dir_page_entry->offset;
+		dir_page_entry = (Page_entry *)dir_ptr;
 		page_id += dir_page_capacity;
 	}
-
+	//if find a dir page with freespace
+	if (dir_page_entry->freespace >= 1) {
+		data_page_entry = (Page_entry *)(dir_ptr + OFFSET_LEN + FREESPACE_LEN);
+		page_id++;
+		// find a free slot
+		while (data_page_entry->offset != 0) {
+			data_page_entry++;
+			page_id++;
+		}
+		// update the free slot
+		data_page_entry->offset = page_id * heapfile->page_size;
+		data_page_entry->freespace = heapfile->page_size / sizeof(Slot);
+		return page_id;
+	}
+	// if no dir page with freespace, create a new dir page
+	if (dir_page_entry->offset == 0) {
+		dir_page_entry->offset = (page_id + dir_page_capacity) * heapfile->page_size;
+		dir_ptr = (char *)heapfile->file_ptr + dir_page_entry->offset;
+		// update dir entry
+		dir_page_entry = (Page_entry *)dir_ptr;
+		dir_page_entry->offset = 0;
+		dir_page_entry->freespace = dir_page_capacity - 2;
+		// update data page entry
+		data_page_entry = (Page_entry *)(dir_ptr + OFFSET_LEN + FREESPACE_LEN);
+		page_id = page_id + dir_page_capacity + 1;
+		data_page_entry->offset = page_id * heapfile->page_size;
+		data_page_entry->freespace = heapfile->page_size / sizeof(Slot);
+	}
 
 	return page_id;
 }
@@ -211,7 +291,11 @@ PageID alloc_page(Heapfile *heapfile)
  */
 void read_page(Heapfile *heapfile, PageID pid, Page *page)
 {
-	return;
+	int fd = fileno(heapfile->file_ptr);
+	if (readblock(fd, heapfile->page_size, pid, 1, page->data) == -1) {
+        fprintf(stderr, "read file error\n");
+        exit(1);
+	}
 }
 
 /**

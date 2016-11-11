@@ -15,8 +15,10 @@
  {
  	// input sanity check
  	if (argc != 3) {
-		printf("usage: read_fixed_len_page <page_file> <page_size>\n");
-		exit(-1);
+ 		fprintf(stderr, "Usage: %s <page_file> <page_size>\n", argv[0]);
+        exit(1);
+		//printf("usage: read_fixed_len_page <page_file> <page_size>\n");
+		//exit(-1);
 	}
 	FILE *page_fp;
 	if ((page_fp = fopen(argv[1], "r")) == NULL) {
@@ -62,13 +64,13 @@
 				// print the record as csv format
 				for (j=0; j<(NUM_ATTRS - 1); j++) {
 					strncpy(attr_value, slot_ptr + 1 + j * ATTR_LEN, ATTR_LEN);
-					attr_value[ATTR_LEN + 1] = '\0';
+					attr_value[ATTR_LEN] = '\0';
 					printf("%s,", attr_value);
 					bzero(attr_value, ATTR_LEN + 1);
 				}
 				// print the last attribute value
 				strncpy(attr_value, slot_ptr + 1 + j * ATTR_LEN, ATTR_LEN);
-				attr_value[ATTR_LEN + 1] = '\0';
+				attr_value[ATTR_LEN] = '\0';
 				printf("%s\n\n", attr_value);
 				bzero(attr_value, ATTR_LEN + 1);
 			}			

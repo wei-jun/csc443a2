@@ -16,6 +16,11 @@ typedef struct {
 } Page;
 
 typedef struct {
+	char flag;  // '0' - free; '1' - occupied
+	char record[NUM_ATTRS * ATTR_LEN];
+} Slot;
+
+typedef struct {
     FILE *file_ptr;
     int page_size;
 } Heapfile;
@@ -35,13 +40,17 @@ typedef struct {
     int freespace;  // free space (number of free dir slots) in this dir page
 } Dir_page;
 
+typedef struct {
+	unsigned long offset;
+	int freespace;  // number of free slots
+} Page_entry;
+
 /*
-Idea: Heapfile file_ptr points to the first page of the heapfile,
-the first page is always a directory page; directory page has the same
-page size as regular data(records) page, but has smaller slot size(12 bytes) 
-and bigger page capacity(number of slots); each slot has two attributes, the
-first one (8 bytes) is page_offset, the second one (4 bytes) is freespace(number
-of slots); 
+Idea: Heapfile file_ptr points to the first page of the heapfile, the first page 
+is always a directory page; directory page has the same page size as regular 
+data(records) page, but smaller slot size(12 bytes) and bigger page capacity(number 
+of slots); each slot stores one page_entry(page_offset, freespace); page_offset is
+8 bytes, freespace(number of slots) is 4 bytes; 
 The first slot of each directory page stores offset for the next directory page, 
 (0 indicates no next directory page), and the freespace for this directory page.
 From second slot and on, each slot stores a data page's offset and freespace.
