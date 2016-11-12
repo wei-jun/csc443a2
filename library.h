@@ -37,16 +37,16 @@ typedef struct {
 	int freespace;  // number of free slots
 } Page_entry;
 
-/*
-Idea: Heapfile file_ptr points to the first page of the heapfile, the first page 
-is always a directory page; directory page has the same page size as regular 
-data(records) page, but smaller slot size(12 bytes) and bigger page capacity(number 
-of slots); each slot stores one page_entry(page_offset, freespace); page_offset is
-8 bytes, freespace(number of slots) is 4 bytes; 
-The first slot of each directory page stores offset for the next directory page, 
-(0 indicates no next directory page), and the freespace for this directory page.
-From second slot and on, each slot stores a data page's offset and freespace.
-*/
+/**
+ * Idea: Heapfile file_ptr points to the first page of the heapfile, the first page 
+ * is always a directory page; directory page has the same page size as regular 
+ * data(records) page, but smaller slot size(12 bytes) and bigger page capacity(number 
+ * of slots); each slot stores one page_entry(page_offset, freespace); page_offset is
+ * 8 bytes, freespace(number of slots) is 4 bytes; 
+ * The first slot of each directory page stores offset for the next directory page, 
+ * (0 indicates no next directory page), and the freespace for this directory page.
+ * From second slot and on, each slot stores a data page's offset and freespace.
+ */
 
 /**
  * Compute the number of bytes required to serialize record

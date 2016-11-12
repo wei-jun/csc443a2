@@ -44,9 +44,9 @@
 	Page *page;
 	int slot_size = 1 + NUM_ATTRS * ATTR_LEN;
 	int page_capacity = page_size / slot_size;
-	page_size = (page_size / slot_size) * slot_size;	
+	// page_size = (page_size / slot_size) * slot_size;	
 	page = (Page *)malloc(sizeof(Page));
-	page->data = (void *)malloc((page_size / slot_size) * slot_size);
+	page->data = (void *)malloc(page_size);
 	init_fixed_len_page(page, page_size, slot_size);
 	
 	int rec_count = 0;
@@ -62,13 +62,12 @@
 	while(fgets(line, MAXLINE, csv_fp) != NULL) {
 		char *curr_attr = strtok(line, ",");
 		int i = 0;
-		// remove common "," from the line and save into row
+		// remove comma "," from the line and save into row
 		while (curr_attr) {
 			strncpy(row + i * ATTR_LEN, curr_attr, ATTR_LEN);
 			curr_attr = strtok(NULL, ",");
 			i++;			
 		}
-		//printf("row read is: %s\n\n", row);
 		
 		/*
 		// use the row to construct a record

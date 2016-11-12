@@ -5,56 +5,17 @@
 
 #include "library.h"
 
-/*
-#include <vector>
-typedef const char* V;
-typedef std::vector<V> Record;
 
-#define NUM_ATTRS 100 // number of attributes
-#define ATTR_LEN  10 //  lenght of each attribute
-#define MAXLINE   1200
-#define OFFSET_LEN     8 // bytes of page_offset
-#define FREESPACE_LEN  4 // bytes of freespace
-
-typedef struct {
-    void *data;
-    int page_size;
-    int slot_size;
-} Page;
-
-typedef struct {
-	char flag;  // '0' - free; '1' - occupied
-	void record[NUM_ATTRS * ATTR_LEN];
-} Slot;
-
-typedef struct {
-    FILE *file_ptr;
-    int page_size;
-} Heapfile
-
-typedef int PageID;
- 
-typedef struct {
-    int page_id;
-    int slot;
-} RecordID;
-
-Idea: Heapfile file_ptr points to the first page of the heapfile, the first page 
-is always a directory page; directory page has the same page size as regular 
-data(records) page, but smaller slot size(12 bytes) and bigger page capacity(number 
-of slots); each slot stores one page_entry(page_offset, freespace); page_offset is
-8 bytes, freespace(number of slots) is 4 bytes; 
-The first slot of each directory page stores offset for the next directory page, 
-(0 indicates no next directory page), and the freespace for this directory page.
-From second slot and on, each slot stores a data page's offset and freespace.
-
-typedef struct {
-	unsigned long offset;
-	int freespace;
-} Page_entry;
-
-*/
-
+/**
+ * Idea: Heapfile file_ptr points to the first page of the heapfile, the first page 
+ * is always a directory page; directory page has the same page size as regular 
+ * data(records) page, but smaller slot size(12 bytes) and bigger page capacity(number 
+ * of slots); each slot stores one page_entry(page_offset, freespace); page_offset is
+ * 8 bytes, freespace(number of slots) is 4 bytes; 
+ * The first slot of each directory page stores offset for the next directory page, 
+ * (0 indicates no next directory page), and the freespace for this directory page.
+ * From second slot and on, each slot stores a data page's offset and freespace.
+ */
 
 /**
  * Compute the number of bytes required to serialize record
@@ -123,17 +84,7 @@ int fixed_len_page_freeslots(Page *page)
 {
 	int i;
 	int count = 0;
-	/*
-	char *slot_ptr;
-	char flag;  // 1=occupied, 0=free space
-	for (i=0; i<(page->page_size)/(page->slot_size); i++) {
-		slot_ptr = (char *)page->data + i * page->slot_size;
-		strncpy(&flag, slot_ptr, 1);
-		if ( strcmp(&flag, "0") == 0) {
-			count++;
-		}
-	}
-	*/
+	
 	Slot *slot_ptr;
 	for (i=0; i<(page->page_size/page->slot_size); i++) {
 		slot_ptr = (Slot *)((char *)page->data + i * page->slot_size);
@@ -156,18 +107,6 @@ int add_fixed_len_page(Page *page, Record *r)
 		return -1;
 	}
 
-	/*
-	int i;
-	char *slot_ptr;
-	for (i=0; i<(page->page_size)/(page->slot_size); i++) {
-		slot_ptr = (char *)page->data + i * page->slot_size;
-		if ( strncmp(slot_ptr, "0", 1) == 0) {
-			strncpy(slot_ptr, "1", 1);
-			fixed_len_write(r, slot_ptr + 1);
-			return i;
-		}
-	}
-	*/
     int i;
 	Slot *slot_ptr;
 	for (i=0; i<(page->page_size)/(page->slot_size); i++) {
@@ -191,11 +130,7 @@ void write_fixed_len_page(Page *page, int slot, Record *r)
 		fprintf(stderr, "slot number out of range!\n");
 		exit(-1);
 	}
-	/*
-	char *slot_ptr = (char *)page->data + slot * page->slot_size;
-	strncpy(slot_ptr, "1", 1);
-	fixed_len_write(r, slot_ptr + 1);
-	*/
+	
 	Slot *slot_ptr = (Slot *)((char *)page->data + slot * page->slot_size);
 	slot_ptr->flag = '1';
 	fixed_len_write(r, slot_ptr->record);
@@ -233,49 +168,77 @@ void init_heapfile(Heapfile *heapfile, int page_size, FILE *file)
  */
 PageID alloc_page(Heapfile *heapfile)
 {
-	int page_id = 0;
-	int dir_page_capacity = heapfile->page_size / (OFFSET_LEN + FREESPACE_LEN);
-	char * dir_ptr;
+	PageID dir_page_id = 0;
+	PageID data_page_id = 0;
 	Page_entry *dir_page_entry, *data_page_entry;
+	int dir_page_capacity = heapfile->page_size / (OFFSET_LEN + FREESPACE_LEN);
+	
+    // allocate a new page to be added in the heapfile
+	Page *new_page = (Page *)malloc(sizeof(Page));
+	new_page->data = (void *)malloc(heapfile->page_size);
+	init_fixed_len_page(new_page, heapfile->page_size, sizeof(Slot));
+
+	// allocate a dir page for reading a dir page from heapfile
+	Page *dir_page = (Page *)malloc(sizeof(Page));
+	dir_page->data = (void *)malloc(heapfile->page_size);
+	init_fixed_len_page(dir_page, heapfile->page_size, OFFSET_LEN + FREESPACE_LEN);
+
+	// read the first page of the heap file, it is a dir page
+	read_page(heapfile, dir_page_id, dir_page);
 
 	// find a directory page for this new page entry
-	dir_ptr = (char *)heapfile->file_ptr;
-	dir_page_entry = (Page_entry *)dir_ptr;
+	dir_page_entry = (Page_entry *)dir_page->data;
 	while (dir_page_entry->freespace < 1 && dir_page_entry->offset != 0) {
-		dir_ptr = (char *)heapfile->file_ptr + dir_page_entry->offset;
-		dir_page_entry = (Page_entry *)dir_ptr;
-		page_id += dir_page_capacity;
+		dir_page_id += dir_page_entry->offset / heapfile->page_size;
+		bzero(dir_page->data, heapfile->page_size);
+		read_page(heapfile, dir_page_id, dir_page);
+		dir_page_entry = (Page_entry *)dir_page->data;
 	}
 	//if find a dir page with freespace
 	if (dir_page_entry->freespace >= 1) {
-		data_page_entry = (Page_entry *)(dir_ptr + OFFSET_LEN + FREESPACE_LEN);
-		page_id++;
-		// find a free slot
+		dir_page_entry->freespace--;
+		data_page_entry = dir_page_entry + 1;
+		data_page_id = dir_page_id + 1;
+
 		while (data_page_entry->offset != 0) {
 			data_page_entry++;
-			page_id++;
+			data_page_id++;
 		}
 		// update the free slot
-		data_page_entry->offset = page_id * heapfile->page_size;
+		data_page_entry->offset = data_page_id * heapfile->page_size;
 		data_page_entry->freespace = heapfile->page_size / sizeof(Slot);
-		return page_id;
+		// write the modified dir page back to heap file
+		write_page(dir_page, heapfile, dir_page_id);
+		// write the new page in heapfile
+		write_page(new_page, heapfile, data_page_id);
 	}
-	// if no dir page with freespace, create a new dir page
-	if (dir_page_entry->offset == 0) {
-		dir_page_entry->offset = (page_id + dir_page_capacity) * heapfile->page_size;
-		dir_ptr = (char *)heapfile->file_ptr + dir_page_entry->offset;
-		// update dir entry
-		dir_page_entry = (Page_entry *)dir_ptr;
+	// if no dir page with freespace, create a new dir page, and add to the heap file
+	//if (dir_page_entry->offset == 0) {
+	else {
+		// update the last full dir page offset
+		dir_page_entry->offset = (dir_page_id + dir_page_capacity) * heapfile->page_size;
+		// create new dir page
+		dir_page_id += dir_page_capacity;
+		bzero(dir_page->data, heapfile->page_size);
+		dir_page_entry = (Page_entry *)dir_page->data;
 		dir_page_entry->offset = 0;
 		dir_page_entry->freespace = dir_page_capacity - 2;
-		// update data page entry
-		data_page_entry = (Page_entry *)(dir_ptr + OFFSET_LEN + FREESPACE_LEN);
-		page_id = page_id + dir_page_capacity + 1;
-		data_page_entry->offset = page_id * heapfile->page_size;
-		data_page_entry->freespace = heapfile->page_size / sizeof(Slot);
-	}
 
-	return page_id;
+		data_page_entry = dir_page_entry + 1;
+		data_page_id = dir_page_id + 1;
+		data_page_entry->offset = data_page_id * heapfile->page_size;
+		data_page_entry->freespace = heapfile->page_size / sizeof(Slot);
+		// write the new dir page to heap file
+		write_page(dir_page, heapfile, dir_page_id);
+		//write the new page to heap file
+		write_page(new_page, heapfile, data_page_id);
+	}
+	free(dir_page->data);
+	free(dir_page);
+	free(new_page->data);
+	free(new_page);
+
+	return data_page_id;
 }
 
 /**
