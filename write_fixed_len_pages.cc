@@ -7,7 +7,7 @@
 
 /**
  *Load as many records from a comma separated file to fill up a page,  and append 
- *the  age to a file. Repeat until all the records in the CSV files are written to 
+ *the page to a file. Repeat until all the records in the CSV files are written to 
  *the page file. Your program should follow the following syntax, and produce the 
  *output containing record count, page count, and time took, similar to as follows:
  *$ write_fixed_len_pages <csv_file> <page_file> <page_size>
@@ -39,15 +39,12 @@
 	char row[MAXLINE];   // row in page
 	bzero(line, MAXLINE);
 	bzero(row, MAXLINE);
-	Record *record;
-	char *slot_ptr;
+	Slot *slot_ptr;
 	Page *page;
-	int slot_size = 1 + NUM_ATTRS * ATTR_LEN;
-	int page_capacity = page_size / slot_size;
-	// page_size = (page_size / slot_size) * slot_size;	
+	int page_capacity = page_size / sizeof(Slot);
 	page = (Page *)malloc(sizeof(Page));
 	page->data = (void *)malloc(page_size);
-	init_fixed_len_page(page, page_size, slot_size);
+	init_fixed_len_page(page, page_size, sizeof(Slot));
 	
 	int rec_count = 0;
 	int page_count = 0;	
@@ -68,22 +65,10 @@
 			curr_attr = strtok(NULL, ",");
 			i++;			
 		}
-		
-		/*
-		// use the row to construct a record
-		fixed_len_read(row, NUM_ATTRS * ATTR_LEN, record);
-
-		// write the record into a page
-		write_fixed_len_page(page, j, record);
-		*/
-		
 		// write the row into a page
-		slot_ptr = (char *)page->data + j * slot_size;
-		strncpy(slot_ptr, "1", 1);
-		memcpy(slot_ptr + 1, row, slot_size - 1);
-
-		// printf("slot flag is: %s \n", slot_ptr);
-		// printf("slot content is: %s\n\n", slot_ptr);
+		slot_ptr = (Slot *)((char *)page->data + j * sizeof(Slot));
+		slot_ptr->flag = '1';
+		memcpy(slot_ptr->record, row, sizeof(Slot) - 1);
 
 		bzero(line, MAXLINE);
 	    bzero(row, MAXLINE);

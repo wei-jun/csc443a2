@@ -28,7 +28,6 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "page_size should be greater than %d.\n", NUM_ATTRS * ATTR_LEN);
 		exit(-1);
 	}
-	// page_size = (page_size / sizeof(Slot)) * sizeof(Slot);
 
 	FILE *heapfile_fp = fopen(argv[2], "w");
 	Heapfile *heapfile = (Heapfile *)malloc(sizeof(Heapfile));
@@ -83,18 +82,11 @@ int main(int argc, char* argv[])
 			i++;			
 		}
 
-		/*
-		// use the row to construct a record
-		fixed_len_read(row, NUM_ATTRS * ATTR_LEN, record);
-
-		// write the record into a page
-		write_fixed_len_page(page, j, record);
-		*/
-		
 		// write the row into a page
 		slot_ptr = (Slot *)((char *)data_page->data + j * sizeof(Slot));
 		slot_ptr->flag = '1';
 		memcpy(slot_ptr->record, row, sizeof(Slot) - 1);
+
 		data_page_entry->freespace--;
 		rec_count++;
 		j++;
@@ -121,6 +113,8 @@ int main(int argc, char* argv[])
 			else {
 				dir_page_entry->offset = (dir_page_id + dir_page_capacity) * page_size;
 				write_page(dir_page, heapfile, dir_page_id);
+				
+				bzero(dir_page->data, page_size);
 				page_count++;
 				dir_page_id += dir_page_capacity;
 				bzero(dir_page->data, page_size);
