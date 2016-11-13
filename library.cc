@@ -260,6 +260,7 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid)
 {
 	fseek(heapfile->file_ptr, pid * heapfile->page_size, SEEK_SET);
 	fwrite(page->data, 1, heapfile->page_size, heapfile->file_ptr);
+	fflush(heapfile->file_ptr);
 	fseek(heapfile->file_ptr, 0, SEEK_SET);
 
 }
