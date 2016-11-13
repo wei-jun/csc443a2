@@ -33,7 +33,7 @@ typedef struct {
 } RecordID;
 
 typedef struct {
-	unsigned long offset;
+	unsigned long offset;  // page offset from the beginning of heapfile in bytes
 	int freespace;  // number of free slots
 } Page_entry;
 
@@ -117,12 +117,21 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page);
  */
 void write_page(Page *page, Heapfile *heapfile, PageID pid);
 
+/**
+ * enumerate records of a heap file
+ */
+
 class RecordIterator {
+	Heapfile *heapfile;
+	Page *cur_dir_page;
+	Page *cur_data_page;
+	RecordID cur_record_id;
     public:
     RecordIterator(Heapfile *heapfile);
     Record next();
     bool hasNext();
 };
+
 
 
 
