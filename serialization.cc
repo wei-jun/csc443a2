@@ -45,16 +45,20 @@ void fixed_len_write(Record *record, void *buf) {
  */
 void fixed_len_read(void *buf, int size, Record *record) {
 	char* charptr = (char*) buf;
-	char* temp = (char *)malloc(11); //temporily store each and every 10 bits words
+	 //temporily store each and every 10 bits words
 
 	for (int i=0; i < size; i+=10){
+		char* temp = (char *)malloc(11);
 		strncpy(temp, charptr+i, 10);
-		printf("%s\n", temp);
+		printf("temp: %s\n", temp);
 		record->push_back(temp);
 	}
-	for (Record::const_iterator i = record->begin(); i != path->end(); ++i)
+	for (Record::const_iterator i = record->begin(); i != record->end(); ++i)
     std::cout << *i << ' ';
 }
+
+
+
 int main(int argc, char *argv[]){
 
 	char *a = (char *)malloc(11);
@@ -80,13 +84,12 @@ int main(int argc, char *argv[]){
 	r->push_back(d);
 	r->push_back(e);
 	r->push_back(f);
-	fixed_len_write(r, buf);
+//	fixed_len_write(r, buf);
 
-  // memcpy(buf, "abc", 4);
-	// printf("%s\n", buf);
-	// char *a2 = (char *)malloc(31);
-	// strncpy (a2, "zzzzzzzzzzxxxxxxxxxxyyyyyyyyyy", 30);
-	// fixed_len_read(a2, 30, r);
+
+	 char *a2 = (char *)malloc(31);
+	 strncpy (a2, "zzzzzzzzzzxxxxxxxxxxyyyyyyyyyy", 30);
+	 fixed_len_read(a2, 30, r);
 
 	return 0;
 }
