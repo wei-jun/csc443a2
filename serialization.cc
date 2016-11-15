@@ -20,19 +20,17 @@ int fixed_len_sizeof(Record *record) {
 
 /**
  * Serialize_Record. Serialize the record to a byte array to be stored in buf.
+ * std::vector<V> Record = {'aaaaa aaaaa', 'bbbbb bbbbb', ... 'zzzzz zzzzz'};
+ * void *buf = 'aaaaaaaaaabbbbbbbbbb ... zzzzzzzzzz'
  */
 void fixed_len_write(Record *record, void *buf) {
-	//std::vector<V> Record = {'aaaaa aaaaa', 'bbbbb bbbbb', ... 'zzzzz zzzzz'};
-	//*buf = 'aaaaaaaaaabbbbbbbbbb ... zzzzzzzzzz'
-  char* buffer = (char *)buf;
+  char* buffer;// = (char *)buf;
+	//char* buffer = static_cast<char*>(buf);
 	int i = 0;
 	Record::iterator it;
-	printf("here0");
 	for(it = record->begin(); it != record->end(); ++it) {
 			printf("%s\n", *it);
-			printf("here1");
-			strncpy(buffer + i * 10, *it, 11);
-			printf("here2");
+			strncpy(buffer+i*10, *it, 10);
 			i++;
 	}
 	printf("Buffer: %s\n", buffer);
@@ -71,14 +69,7 @@ int main(int argc, char *argv[]){
 	char *f = (char *)malloc(11);
 	strncpy (f, "ffffffffff", 10);
 
-	// Record record;
-	// record.push_back(a);
-	// record.push_back(b);
-	// record.push_back(c);
-	// Record::iterator it;
-	// for(it = record.begin(); it != record.end(); ++it) {
-	// 		printf("%s\n", *it);
-	// }
+
 	void *buf;
 	Record *r = new Record();
 	r->push_back(a);
@@ -89,39 +80,11 @@ int main(int argc, char *argv[]){
 	r->push_back(f);
 	fixed_len_write(r, buf);
 
+  // memcpy(buf, "abc", 4);
+	// printf("%s\n", buf);
 	// char *a2 = (char *)malloc(31);
 	// strncpy (a2, "zzzzzzzzzzxxxxxxxxxxyyyyyyyyyy", 30);
 	// fixed_len_read(a2, 30, r);
 
-
-
-
-
-// 	std::cout << "myvector contains:";
-// for (std::vector<V>::iterator it = record.begin() ; it != record.end(); ++it)
-// 	std::cout << ' ' << *it;
-// std::cout << '\n';
 	return 0;
-
-
-// 	// constructors used in the same order as described above:
-// std::vector<int> first;                                // empty vector of ints
-// std::vector<int> second (4,100);                       // four ints with value 100
-// std::vector<int> third (second.begin(),second.end());  // iterating through second
-// std::vector<int> fourth (third);                       // a copy of third
-//
-//
-// std::vector<V> record (4, "hello");
-//
-//
-// // the iterator constructor can also be used to construct from arrays:
-// int myints[] = {16,2,77,29};
-// std::vector<int> fifth (myints, myints + sizeof(myints) / sizeof(int) );
-//
-// std::cout << "The contents of fifth are:";
-// for (std::vector<int>::iterator it = fifth.begin(); it != fifth.end(); ++it)
-// 	std::cout << ' ' << *it;
-// std::cout << '\n';
-//
-// return 0;
 }
