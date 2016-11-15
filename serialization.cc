@@ -24,14 +24,15 @@ int fixed_len_sizeof(Record *record) {
 void fixed_len_write(Record *record, void *buf) {
 	//std::vector<V> Record = {'aaaaa aaaaa', 'bbbbb bbbbb', ... 'zzzzz zzzzz'};
 	//*buf = 'aaaaaaaaaabbbbbbbbbb ... zzzzzzzzzz'
-  char* buffer = (char *)buf;
+  char* buffer;// = (char*) buf;
 	int i = 0;
 	Record::iterator it;
 	for(it = record->begin(); it != record->end(); ++it) {
 			printf("%s\n", *it);
-			strncpy(buffer + i * 10, *it, 10);
+			strncpy(buffer + i * 10, *it, 11);
 			i++;
 	}
+	printf("Buffer: %s\n", buffer);
 }
 
 /**
@@ -40,13 +41,16 @@ void fixed_len_write(Record *record, void *buf) {
  * Input: fixed_len_read('aaaaabbbbbccccc', 1000, {});
  * Output: {'aaaaa', 'bbbbb', 'ccccc'}
  */
-void fixed_len_read(void *buf, int size, Record *record) { //malloc?
-	/**
-	for (int i=0; i < size; i+10){
-		char *temp = buf[i, i+9];
-		record.push_back(temp);
+void fixed_len_read(void *buf, int size, Record *record) {
+	char* charptr = (char*) buf;
+	char* temp = (char *)malloc(11); //temporily store each and every 10 bits words
+	record = new Record();
+
+	for (int i=0; i < size; i+=10){
+		strncpy(temp, charptr+i, 10);
+		record->push_back(temp);
+		printf("%s\n", temp);
 	}
-	*/
 }
 int main(int argc, char *argv[]){
 
@@ -56,6 +60,13 @@ int main(int argc, char *argv[]){
 	strncpy (b, "bbbbbbbbbb", 10);
 	char *c = (char *)malloc(11);
 	strncpy (c, "cccccccccc", 10);
+
+	char *d = (char *)malloc(11);
+	strncpy (d, "dddddddddd", 10);
+	char *e = (char *)malloc(11);
+	strncpy (e, "eeeeeeeeee", 10);
+	char *f = (char *)malloc(11);
+	strncpy (f, "ffffffffff", 10);
 
 	// Record record;
 	// record.push_back(a);
@@ -70,7 +81,14 @@ int main(int argc, char *argv[]){
 	r->push_back(a);
 	r->push_back(b);
 	r->push_back(c);
+	r->push_back(d);
+	r->push_back(e);
+	r->push_back(f);
 	fixed_len_write(r, buf);
+
+	char *a2 = (char *)malloc(31);
+	strncpy (a2, "zzzzzzzzzzxxxxxxxxxxyyyyyyyyyy", 30);
+	fixed_len_read(a2, 30, r);
 
 
 
