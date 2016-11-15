@@ -24,12 +24,15 @@ int fixed_len_sizeof(Record *record) {
 void fixed_len_write(Record *record, void *buf) {
 	//std::vector<V> Record = {'aaaaa aaaaa', 'bbbbb bbbbb', ... 'zzzzz zzzzz'};
 	//*buf = 'aaaaaaaaaabbbbbbbbbb ... zzzzzzzzzz'
-  char* buffer;// = (char*) buf;
+  char* buffer = (char *)buf;
 	int i = 0;
 	Record::iterator it;
+	printf("here0");
 	for(it = record->begin(); it != record->end(); ++it) {
 			printf("%s\n", *it);
+			printf("here1");
 			strncpy(buffer + i * 10, *it, 11);
+			printf("here2");
 			i++;
 	}
 	printf("Buffer: %s\n", buffer);
@@ -86,9 +89,9 @@ int main(int argc, char *argv[]){
 	r->push_back(f);
 	fixed_len_write(r, buf);
 
-	char *a2 = (char *)malloc(31);
-	strncpy (a2, "zzzzzzzzzzxxxxxxxxxxyyyyyyyyyy", 30);
-	fixed_len_read(a2, 30, r);
+	// char *a2 = (char *)malloc(31);
+	// strncpy (a2, "zzzzzzzzzzxxxxxxxxxxyyyyyyyyyy", 30);
+	// fixed_len_read(a2, 30, r);
 
 
 
