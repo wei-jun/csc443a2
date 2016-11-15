@@ -34,31 +34,25 @@ int fixed_len_sizeof(Record *record) {
  * Serialize the record to a byte array to be stored in buf.
  */
 void fixed_len_write(Record *record, void *buf) {
-    //char* buffer;// = (char *)buf;
-	//char* buffer = static_cast<char*>(buf);
 	int i = 0;
 	Record::iterator it;
 	for(it = record->begin(); it != record->end(); ++it) {
-			printf("it = %s\n", *it);
-			memcpy((char *)buf+i*10, *it, 10);
+			memcpy((char *)buf+i*ATTR_LEN, *it, ATTR_LEN);
 			i++;
 	}
-	printf("Buffer: %s\n", (char *)buf);
+	//printf("Buffer: %s\n", (char *)buf);
 }
 
 /**
  * Deserializes `size` bytes from the buffer, `buf`, and
  * stores the record in `record`.
- * Input: fixed_len_read('aaaaabbbbbccccc', 1000, {});
- * Output: {'aaaaa', 'bbbbb', 'ccccc'}
  */
 void fixed_len_read(void *buf, int size, Record *record) {
-	char* charptr = (char*) buf;
-	for (int i=0; i < size; i+=10){
-		char* temp = (char *)malloc(11); //temporily store each and every 10 bits words
-		strncpy(temp, charptr+i, 10);
+	for (int i=0; i < size; i+=ATTR_LEN){
+		char* temp = (char *)malloc(ATTR_LEN+1);
+		strncpy(temp, (char *)buf+i, ATTR_LEN);
 		record->push_back(temp);
-		printf("%s\n", temp);
+		//printf("%s\n", temp);
 	}
 }
 
@@ -272,9 +266,10 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid)
 /**
  * The central functionality of a heap file is enumeration of records
  */
-RecordIterator::RecordIterator(Heapfile *heapfile)
+
+RecordIterator::RecordIterator(Heapfile *heap_file)
 {
-	heapfile = heapfile;
+	heapfile = heap_file;
 	Page_entry *dir_page_entry, *data_page_entry;
 	cur_record_id.page_id = 0;
 	cur_record_id.slot = -1;
@@ -319,9 +314,9 @@ Record RecordIterator::next()
 			slot_ptr = (Slot *)((char *)cur_data_page->data + i * sizeof(Slot));
 			if (slot_ptr->flag == '1') {
 				cur_record_id.slot = i;
-				printf("to call 'fixed_len_read'...\n");
 				fixed_len_read(slot_ptr->record, sizeof(Slot)-1, &next_record);
-				printf("after calling 'fixed_len_read.'\n");
+
+				//printf("page_id = %d, slot = %d\n", cur_record_id.page_id, cur_record_id.slot);
 				return next_record;
 			}
 		}
@@ -373,11 +368,11 @@ Record RecordIterator::next()
 			slot_ptr++;
 			next_slot++;
 		}
-		// char *temp[1024];
 		fixed_len_read(slot_ptr->record, sizeof(Slot) - 1, &next_record);
 		cur_record_id.page_id = next_page_id;
 		cur_record_id.slot = next_slot;
 
+		// printf("page_id = %d, slot = %d\n", cur_record_id.page_id, cur_record_id.slot);
 		return next_record;
 	} 
 	else {
@@ -400,10 +395,13 @@ bool RecordIterator::hasNext()
 
 	// search the current data page for next record
 	int i;
+
 	if (cur_record_id.slot + 1 < data_page_capacity) {
 		for (i = cur_record_id.slot + 1; i < data_page_capacity; i++) {
 			slot_ptr = (Slot *)((char *)cur_data_page->data + i * sizeof(Slot));
 			if (slot_ptr->flag == '1') {
+
+				//printf("hasNext = true\n");
 				return true;
 			}
 		}
@@ -417,6 +415,8 @@ bool RecordIterator::hasNext()
 	    for (j = (cur_record_id.page_id + 1) % dir_page_capacity; j < dir_page_capacity; j++) {
 		    data_page_entry = dir_page_entry + j;
 		    if (data_page_entry->offset != 0 && data_page_entry->freespace != data_page_capacity) {
+
+		    	//printf("hasNext = true\n");
 		    	return true;
 		    }
 	    }
