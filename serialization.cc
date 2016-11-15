@@ -3,6 +3,7 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
+
 typedef char* V;
 typedef std::vector<V> Record;
 
@@ -24,16 +25,16 @@ int fixed_len_sizeof(Record *record) {
  * void *buf = 'aaaaaaaaaabbbbbbbbbb ... zzzzzzzzzz'
  */
 void fixed_len_write(Record *record, void *buf) {
-  char* buffer;// = (char *)buf;
+  //char* buffer;// = (char *)buf;
 	//char* buffer = static_cast<char*>(buf);
 	int i = 0;
 	Record::iterator it;
 	for(it = record->begin(); it != record->end(); ++it) {
 			printf("%s\n", *it);
-			strncpy(buffer+i*10, *it, 10);
+			strncpy((char *)buf+i*10, *it, 10);
 			i++;
 	}
-	printf("Buffer: %s\n", buffer);
+	printf("Buffer: %s\n", (char *)buf);
 }
 
 /**
@@ -45,13 +46,14 @@ void fixed_len_write(Record *record, void *buf) {
 void fixed_len_read(void *buf, int size, Record *record) {
 	char* charptr = (char*) buf;
 	char* temp = (char *)malloc(11); //temporily store each and every 10 bits words
-	record = new Record();
 
 	for (int i=0; i < size; i+=10){
 		strncpy(temp, charptr+i, 10);
-		record->push_back(temp);
 		printf("%s\n", temp);
+		record->push_back(temp);
 	}
+	for (Record::const_iterator i = record->begin(); i != path->end(); ++i)
+    std::cout << *i << ' ';
 }
 int main(int argc, char *argv[]){
 
