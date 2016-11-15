@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <vector>
 
 #include "library.h"
 
@@ -21,26 +22,28 @@
  * Compute the number of bytes required to serialize record
  */
 int fixed_len_sizeof(Record *record) {
-	//int i = sizeof(record);
-	//return i;
-	return 0;
+	int len = 0;
+	std::vector<V>::iterator it;
+	for(it = record->begin(); it != record->end(); ++it) {
+		len += strlen(*it);
+	}
+	return len;
 }
 
 /**
  * Serialize the record to a byte array to be stored in buf.
  */
 void fixed_len_write(Record *record, void *buf) {
-	//std::vector<V> Record = {'aaaaa aaaaa', 'bbbbb bbbbb', ... 'zzzzz zzzzz'};
-	//*buf = 'aaaaaaaaaabbbbbbbbbb ... zzzzzzzzzz'
-	/*
-	char *buf = (char*)buf;
-	std::vector<V>::iterator it;
-	for(it = Record.begin(); it != Record.end(); ++it) {
- 	    *buf = *it;
-	    *buf += 10;
+    //char* buffer;// = (char *)buf;
+	//char* buffer = static_cast<char*>(buf);
+	int i = 0;
+	Record::iterator it;
+	for(it = record->begin(); it != record->end(); ++it) {
+			printf("it = %s\n", *it);
+			memcpy((char *)buf+i*10, *it, 10);
+			i++;
 	}
-	*/
-	return;	
+	printf("Buffer: %s\n", (char *)buf);
 }
 
 /**
@@ -50,12 +53,13 @@ void fixed_len_write(Record *record, void *buf) {
  * Output: {'aaaaa', 'bbbbb', 'ccccc'}
  */
 void fixed_len_read(void *buf, int size, Record *record) {
-	/*
-	for (int i=0; i < size; i+10){
-		char *temp = buf[i, i+9];
-		Record.push_back(temp);
+	char* charptr = (char*) buf;
+	for (int i=0; i < size; i+=10){
+		char* temp = (char *)malloc(11); //temporily store each and every 10 bits words
+		strncpy(temp, charptr+i, 10);
+		record->push_back(temp);
+		printf("%s\n", temp);
 	}
-	*/
 }
 
 
@@ -315,7 +319,9 @@ Record RecordIterator::next()
 			slot_ptr = (Slot *)((char *)cur_data_page->data + i * sizeof(Slot));
 			if (slot_ptr->flag == '1') {
 				cur_record_id.slot = i;
+				printf("to call 'fixed_len_read'...\n");
 				fixed_len_read(slot_ptr->record, sizeof(Slot)-1, &next_record);
+				printf("after calling 'fixed_len_read.'\n");
 				return next_record;
 			}
 		}
@@ -367,6 +373,7 @@ Record RecordIterator::next()
 			slot_ptr++;
 			next_slot++;
 		}
+		// char *temp[1024];
 		fixed_len_read(slot_ptr->record, sizeof(Slot) - 1, &next_record);
 		cur_record_id.page_id = next_page_id;
 		cur_record_id.slot = next_slot;

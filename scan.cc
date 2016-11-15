@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/timeb.h>
+#include <vector>
 
 #include "library.h"
 
@@ -44,9 +45,15 @@
 	ftime(&t_start);
 	start_in_ms = t_start.time * 1000 + t_start.millitm;
 
+	printf("just before 'while'\n");
 	while (iterator.hasNext()) {
+		printf("to get record....\n");
 		record = iterator.next();
+		printf("got record!!!!!!\n");
+		printf("to call 'fixed_len_write'...\n");
 		fixed_len_write(&record, buf);
+		printf("after calling 'fixed_len_write'.\n");
+		printf("buf = %s\n", buf);
 		rec_count++;
 
 		// print the record as csv format

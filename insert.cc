@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/timeb.h>
+#include <vector>
 
 #include "library.h"
 
@@ -18,7 +19,7 @@ int main(int argc, char* argv[])
 		exit(-1);
 	}
 	FILE *heapfile_fp;
-	if ((heapfile_fp = fopen(argv[1], "r")) == NULL) {
+	if ((heapfile_fp = fopen(argv[1], "r+")) == NULL) {
 		fprintf(stderr, "cannot open file %s\n", argv[1]);
 		exit(-1);
 	}	
@@ -33,11 +34,22 @@ int main(int argc, char* argv[])
 		exit(-1);
 	}
 
-
 	Heapfile *heapfile = (Heapfile *)malloc(sizeof(Heapfile));
-	heapfile->file_ptr = heapfile_fp;
-	heapfile->page_size = page_size;
+	void init_heapfile(heapfile, page_size, heapfile_fp);
 
+	char line[MAXLINE];  // line in csv file
+	char row[MAXLINE];   // row in page
+	bzero(line, MAXLINE);
+	bzero(row, MAXLINE);
+	// Record *record;
+	Slot *slot_ptr;
+
+	
+
+
+
+
+	
 
 
 	return 0;

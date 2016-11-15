@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/timeb.h>
+#include <vector>
 
 #include "library.h"
 
@@ -103,13 +104,14 @@ int main(int argc, char* argv[])
 			page_count++;
 			j = 0;
 			data_page_id++;
+			// if dir page has freespace
 			if (dir_page_entry->freespace > 0) {
 				dir_page_entry->freespace--;
 				data_page_entry++;
 				data_page_entry->offset = 0;
 				data_page_entry->freespace = data_page_capacity;
 			}
-			// dir page is full, write to heapfile
+			// if dir page is full, write to heapfile
 			else {
 				dir_page_entry->offset = (dir_page_id + dir_page_capacity) * page_size;
 				write_page(dir_page, heapfile, dir_page_id);
@@ -154,7 +156,6 @@ int main(int argc, char* argv[])
 
  	return 0;
  }
-
 
 
 

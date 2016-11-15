@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/timeb.h>
+#include <vector>
 
 #include "library.h"
 

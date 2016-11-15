@@ -1,4 +1,8 @@
 #include <vector>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/timeb.h>
 
 typedef char* V;
 typedef std::vector<V> Record;
