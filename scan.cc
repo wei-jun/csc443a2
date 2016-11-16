@@ -45,11 +45,20 @@
 	ftime(&t_start);
 	start_in_ms = t_start.time * 1000 + t_start.millitm;
 
-	printf("just before 'while-loop'\n");
 	while (iterator.hasNext()) {
 		record = iterator.next();
 		fixed_len_write(&record, buf);
 		rec_count++;
+        
+        /* for select
+		char temp[ATTR_LEN + 1];
+		temp[ATTR_LEN] = '\0';
+
+		strncpy(temp, (char *)buf + attribute_id * ATTR_LEN, ATTR_LEN)
+		if ((strcmp(temp, start) >= 0) && (strcmp(temp, end) <= 0)) {
+			printf("%s \n", temp);
+		}
+		*/
 
 		// print the record as csv format
 		int j;

@@ -271,7 +271,7 @@ RecordIterator::RecordIterator(Heapfile *heap_file)
 {
 	heapfile = heap_file;
 	Page_entry *dir_page_entry, *data_page_entry;
-	cur_record_id.page_id = 0;
+	cur_record_id.page_id = -1;
 	cur_record_id.slot = -1;
  
     // a heap file has at least one dir page
@@ -295,7 +295,7 @@ RecordIterator::RecordIterator(Heapfile *heap_file)
 Record RecordIterator::next()
 {
 	// if no data page
-	if (cur_record_id.page_id == 0) {
+	if (cur_record_id.page_id == -1) {
 		printf("No record!\n");
 		exit(1);
 	}
@@ -384,7 +384,7 @@ Record RecordIterator::next()
 bool RecordIterator::hasNext()
 {
 	// if no data page
-	if (cur_record_id.page_id == 0) {
+	if (cur_record_id.page_id == -1) {
 		return false;
 	}
 
@@ -414,9 +414,11 @@ bool RecordIterator::hasNext()
 	if ((cur_record_id.page_id + 1) % dir_page_capacity != 0) {
 	    for (j = (cur_record_id.page_id + 1) % dir_page_capacity; j < dir_page_capacity; j++) {
 		    data_page_entry = dir_page_entry + j;
-		    if (data_page_entry->offset != 0 && data_page_entry->freespace != data_page_capacity) {
+		    if ((data_page_entry->freespace >= 0) && 
+				(data_page_entry->freespace < data_page_capacity) &&
+				(data_page_entry->offset > 0)) {
 
-		    	//printf("hasNext = true\n");
+		    	printf("hasNext = true\n");
 		    	return true;
 		    }
 	    }
@@ -431,7 +433,11 @@ bool RecordIterator::hasNext()
 		dir_page_entry = (Page_entry *)cur_dir_page->data;
 	    for (j = 1; j < dir_page_capacity; j++) {
 		    data_page_entry = dir_page_entry + j;
-		    if (data_page_entry->offset != 0 && data_page_entry->freespace != data_page_capacity) {
+		    if ((data_page_entry->freespace >= 0) && 
+				(data_page_entry->freespace < data_page_capacity) &&
+				(data_page_entry->offset > 0)) {
+		    	
+		    	printf("hasNext = true\n");
 		    	return true;
 		    }
 	    }	
