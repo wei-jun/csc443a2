@@ -271,7 +271,7 @@ RecordIterator::RecordIterator(Heapfile *heap_file)
 {
 	heapfile = heap_file;
 	Page_entry *dir_page_entry, *data_page_entry;
-	cur_record_id.page_id = 0;
+	cur_record_id.page_id = -1;
 	cur_record_id.slot = -1;
  
     // a heap file has at least one dir page
@@ -295,7 +295,7 @@ RecordIterator::RecordIterator(Heapfile *heap_file)
 Record RecordIterator::next()
 {
 	// if no data page
-	if (cur_record_id.page_id == 0) {
+	if (cur_record_id.page_id == -1) {
 		printf("No record!\n");
 		exit(1);
 	}
@@ -384,7 +384,7 @@ Record RecordIterator::next()
 bool RecordIterator::hasNext()
 {
 	// if no data page
-	if (cur_record_id.page_id == 0) {
+	if (cur_record_id.page_id == -1) {
 		return false;
 	}
 

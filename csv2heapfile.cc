@@ -75,6 +75,7 @@ int main(int argc, char* argv[])
 	int j = 0;
 	while(fgets(line, MAXLINE, csv_fp) != NULL) {
 		char *curr_attr = strtok(line, ",");
+		printf("first attr = %s\n", curr_attr);
 		int i = 0;
 		// remove comma "," from the line and save into row
 		while (curr_attr) {
