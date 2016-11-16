@@ -45,7 +45,7 @@
 	ftime(&t_start);
 	start_in_ms = t_start.time * 1000 + t_start.millitm;
 
-	printf("just before 'while-loop'\n");
+	//printf("just before 'while-loop'\n");
 	while (iterator.hasNext()) {
 		record = iterator.next();
 		fixed_len_write(&record, buf);
