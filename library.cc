@@ -40,7 +40,7 @@ void fixed_len_write(Record *record, void *buf) {
 			memcpy((char *)buf+i*ATTR_LEN, *it, ATTR_LEN);
 			i++;
 	}
-	//printf("Buffer: %s\n", (char *)buf);
+	printf("Buffer: %s\n", (char *)buf);
 }
 
 /**
@@ -260,7 +260,6 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid)
 	fwrite(page->data, 1, heapfile->page_size, heapfile->file_ptr);
 	fflush(heapfile->file_ptr);
 	fseek(heapfile->file_ptr, 0, SEEK_SET);
-
 }
 
 /**
@@ -315,7 +314,6 @@ Record RecordIterator::next()
 			if (slot_ptr->flag == '1') {
 				cur_record_id.slot = i;
 				fixed_len_read(slot_ptr->record, sizeof(Slot)-1, &next_record);
-
 				//printf("page_id = %d, slot = %d\n", cur_record_id.page_id, cur_record_id.slot);
 				return next_record;
 			}
@@ -330,7 +328,9 @@ Record RecordIterator::next()
 		int j;
 	    for (j = next_page_id % dir_page_capacity; j < dir_page_capacity; j++) {
 		    data_page_entry = dir_page_entry + j;
-		    if (data_page_entry->offset != 0 && data_page_entry->freespace != data_page_capacity) {
+		    if ((data_page_entry->freespace >= 0) && 
+				(data_page_entry->freespace < data_page_capacity) &&
+				(data_page_entry->offset > 0)) {
 		    	next_page_id = data_page_entry->offset / heapfile->page_size;
 		    	break;
 		    }
@@ -349,7 +349,10 @@ Record RecordIterator::next()
 		int j;
 	    for (j = next_page_id % dir_page_capacity; j < dir_page_capacity; j++) {
 		    data_page_entry = dir_page_entry + j;
-		    if (data_page_entry->offset != 0 && data_page_entry->freespace != data_page_capacity) {
+		    // if (data_page_entry->offset != 0 && data_page_entry->freespace != data_page_capacity) {
+		    if ((data_page_entry->freespace >= 0) && 
+				(data_page_entry->freespace < data_page_capacity) &&
+				(data_page_entry->offset > 0)) {
 		    	next_page_id = data_page_entry->offset / heapfile->page_size;
 		    	break;
 		    }
@@ -401,7 +404,7 @@ bool RecordIterator::hasNext()
 			slot_ptr = (Slot *)((char *)cur_data_page->data + i * sizeof(Slot));
 			if (slot_ptr->flag == '1') {
 
-				//printf("hasNext = true\n");
+				printf("hasNext = true\n");
 				return true;
 			}
 		}
@@ -436,7 +439,7 @@ bool RecordIterator::hasNext()
 		    if ((data_page_entry->freespace >= 0) && 
 				(data_page_entry->freespace < data_page_capacity) &&
 				(data_page_entry->offset > 0)) {
-		    	
+
 		    	printf("hasNext = true\n");
 		    	return true;
 		    }
